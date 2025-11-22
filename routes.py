@@ -14,7 +14,7 @@ def get_db():
 
 @router.post("/events/", response_model=schemas.EventRead)
 def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
-    db_event = models.Event(**event.dict())
+    db_event = models.Event(**event.model_dump())
     db.add(db_event)
     db.commit()
     db.refresh(db_event)
@@ -26,7 +26,10 @@ def read_events(db: Session = Depends(get_db)):
 
 @router.post("/registrations/", response_model=schemas.RegistrationRead)
 def create_registration(registration: schemas.RegistrationCreate, db: Session = Depends(get_db)):
-    db_registration = models.Registration(**registration.dict())
+    event = db.query(models.Event).filter(models.Event.id == registration.event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    db_registration = models.Registration(**registration.model_dump())
     db.add(db_registration)
     db.commit()
     db.refresh(db_registration)
