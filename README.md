@@ -46,5 +46,5 @@ A FastAPI backend for managing event registrations, built for our DevOps project
 *More documentation and instructions will be added soon.*
 
 
-# Another trigger CI/CD workflow
+#  latest trigger CI/CD workflow
 
