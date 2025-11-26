@@ -1,7 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models, schemas
+
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+
+from blob_utils import upload_file_to_blob, download_blob_to_bytes
 
 router = APIRouter()
 
@@ -38,3 +43,16 @@ def create_registration(registration: schemas.RegistrationCreate, db: Session = 
 @router.get("/registrations/", response_model=list[schemas.RegistrationRead])
 def read_registrations(db: Session = Depends(get_db)):
     return db.query(models.Registration).all()
+
+# ==== BLOB STORAGE ENDPOINTS ====
+
+@router.post("/blobs/upload/")
+async def upload_blob(container: str, file: UploadFile = File(...)):
+    file_bytes = await file.read()
+    upload_file_to_blob(container, file_bytes, file.filename)
+    return {"status": "uploaded", "blob": file.filename}
+
+@router.get("/blobs/download/")
+def download_blob(container: str, blob_name: str):
+    data = download_blob_to_bytes(container, blob_name)
+    return StreamingResponse(BytesIO(data), media_type="application/octet-stream")
