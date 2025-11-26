@@ -10,12 +10,14 @@ from blob_utils import upload_file_to_blob, download_blob_to_bytes
 
 router = APIRouter()
 
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 @router.post("/events/", response_model=schemas.EventRead)
 def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
@@ -25,9 +27,11 @@ def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
     db.refresh(db_event)
     return db_event
 
+
 @router.get("/events/", response_model=list[schemas.EventRead])
 def read_events(db: Session = Depends(get_db)):
     return db.query(models.Event).all()
+
 
 @router.post("/registrations/", response_model=schemas.RegistrationRead)
 def create_registration(registration: schemas.RegistrationCreate, db: Session = Depends(get_db)):
@@ -40,11 +44,14 @@ def create_registration(registration: schemas.RegistrationCreate, db: Session = 
     db.refresh(db_registration)
     return db_registration
 
+
 @router.get("/registrations/", response_model=list[schemas.RegistrationRead])
 def read_registrations(db: Session = Depends(get_db)):
     return db.query(models.Registration).all()
 
+
 # ==== BLOB STORAGE ENDPOINTS ====
+
 
 @router.post("/blobs/upload/")
 async def upload_blob(container: str, file: UploadFile = File(...)):
@@ -52,7 +59,20 @@ async def upload_blob(container: str, file: UploadFile = File(...)):
     upload_file_to_blob(container, file_bytes, file.filename)
     return {"status": "uploaded", "blob": file.filename}
 
+
 @router.get("/blobs/download/")
 def download_blob(container: str, blob_name: str):
     data = download_blob_to_bytes(container, blob_name)
     return StreamingResponse(BytesIO(data), media_type="application/octet-stream")
+
+
+# ==== DB HEALTH CHECK ====
+
+
+@router.get("/health/db")
+def db_health(db: Session = Depends(get_db)):
+    try:
+        db.execute("SELECT 1")
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {e}")

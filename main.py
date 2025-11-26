@@ -5,9 +5,9 @@ from routes import router
 
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)  # Creates tables
 
 app.include_router(router)
+
 
 @app.get("/")
 async def read_root():
