@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Event Registration System</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #faf5f7;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 32px 40px 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: #3b0a22;
+        }
+
+        h2 {
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #4d102b;
+        }
+
+        input, button, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 70px;
+        }
+
+        button {
+            border: none;
+            background: #800020; /* burgundy */
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        button:hover {
+            background: #a01838;
+        }
+
+        .event-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            background: #fff8fb;
+        }
+
+        .event-card-title {
+            font-weight: 600;
+            color: #4d102b;
+        }
+
+        .event-location {
+            font-style: italic;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fde2eb;
+            color: #800020;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .link {
+            color: #800020;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        .small-text {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .error-text {
+            color: #b00020;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .success-text {
+            color: #0f7b32;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .calendar-day {
+            margin-top: 8px;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #4d102b;
+        }
+
+        .calendar-entry {
+            font-size: 13px;
+            margin-left: 12px;
+        }
+
+        .btn-secondary {
+            background: #f3e5ec;
+            color: #4d102b;
+            border: 1px solid #d8b4ce;
+        }
+
+        .btn-secondary:hover {
+            background: #e7d2e2;
+        }
+
+        .event-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .section-card {
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 10px;
+            border: 1px solid #f0d7e2;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Event Registration System</h1>
+
+    <!-- LOGIN / REGISTER VIEW -->
+    <div id="auth-section">
+        <h2 id="auth-title">Login</h2>
+
+        <!-- LOGIN FORM -->
+        <div id="login-form">
+            <input type="email" id="login-email" placeholder="Email">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <p class="small-text">
+                Don’t have an account?
+                <span class="link" onclick="showRegister()">Register</span>
+            </p>
+            <p id="auth-message" class="error-text"></p>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="register-form" style="display:none;">
+            <input type="text" id="register-name" placeholder="Your Name">
+            <input type="email" id="register-email" placeholder="Your Email">
+            <input type="password" id="register-password" placeholder="Password">
+            <button onclick="registerUser()">Create Account</button>
+            <p class="small-text">
+                Already have an account?
+                <span class="link" onclick="showLogin()">Back to login</span>
+            </p>
+            <p id="register-message" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-section" style="display:none;">
+        <div class="top-bar">
+            <div>
+                <strong id="user-info"></strong>
+                <span id="role-badge" class="badge"></span>
+            </div>
+            <button class="btn-secondary" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- EVENTS LIST -->
+        <div class="section-card">
+            <h2>Available Events</h2>
+            <div id="events-error" class="error-text"></div>
+            <div id="events-list"></div>
+        </div>
+
+        <!-- USER REGISTRATION SECTION -->
+        <div class="section-card" id="user-registration-section">
+            <h2>Register for an Event</h2>
+
+            <select id="reg-event-select"></select>
+            <input type="text" id="reg-name" placeholder="Your Name">
+            <input type="email" id="reg-email" placeholder="Your Email">
+            <textarea id="reg-notes" placeholder="Notes (optional)"></textarea>
+            <button onclick="registerForEvent()">Register</button>
+            <p id="reg-message" class=""></p>
+        </div>
+
+        <!-- MY REGISTRATIONS SECTION -->
+        <div class="section-card">
+            <h2>My Registrations</h2>
+            <button class="btn-secondary" onclick="loadMyRegistrations()">Load my registrations</button>
+            <div id="my-registrations" class="small-text" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- ADMIN SECTION -->
+        <div class="section-card" id="admin-section" style="display:none;">
+            <h2>Admin: Manage Events</h2>
+
+            <h3 style="margin-top:8px;">Create New Event</h3>
+            <input type="text" id="admin-event-name" placeholder="Event Name">
+            <textarea id="admin-event-description" placeholder="Description"></textarea>
+            <input type="datetime-local" id="admin-event-date">
+            <input type="text" id="admin-event-location" placeholder="Location">
+            <button onclick="adminCreateEvent()">Create Event</button>
+            <p id="admin-create-message" class=""></p>
+
+            <h3 style="margin-top:16px;">Edit / Delete Events</h3>
+            <div id="admin-events-list"></div>
+
+            <h3 style="margin-top:16px;">Calendar View</h3>
+            <div id="calendar-view" class="small-text"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // -------- API BASE --------
+    const API = (
+        window.location.hostname.includes("127.0.0.1") ||
+        window.location.hostname.includes("localhost")
+    )
+    ? "http://127.0.0.1:8000"
+    : "https://eventregistration-api-a6dmevh3bbafc2c5.westeurope-01.azurewebsites.net";
+
+
+    let authToken = null;
+    let currentUser = null;
+
+    // -------- VIEW HELPERS --------
+    function showLogin() {
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("dashboard-section").style.display = "none";
+        document.getElementById("auth-title").textContent = "Login";
+        document.getElementById("login-form").style.display = "block";
+        document.getElementById("register-form").style.display = "none";
+        document.getElementById("auth-message").textContent = "";
+    }
+
+    function showRegister() {
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("dashboard-section").style.display = "none";
+        document.getElementById("auth-title").textContent = "Register";
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("register-form").style.display = "block";
+        document.getElementById("register-message").textContent = "";
+    }
+
+    function showDashboard() {
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("dashboard-section").style.display = "block";
+        document.getElementById("reg-message").textContent = "";
+    }
+
+    function setMessage(id, text, type) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.className = type === "error" ? "error-text" : "success-text";
+    }
+
+    // -------- AUTH --------
+    async function login() {
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value;
+
+        if (!email || !password) {
+            setMessage("auth-message", "Please enter email and password.", "error");
+            return;
+        }
+
+        try {
+            const body = new URLSearchParams();
+            body.append("username", email);  // OAuth2PasswordRequestForm expects "username"
+            body.append("password", password);
+
+            const res = await fetch(`${API}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                setMessage("auth-message", data.detail || "Login failed", "error");
+                return;
+            }
+
+            authToken = data.access_token;
+            localStorage.setItem("token", authToken);
+
+            // Get current user info
+            await fetchCurrentUser();
+            afterLogin();
+        } catch (err) {
+            setMessage("auth-message", "Network error: " + err, "error");
+        }
+    }
+
+    async function registerUser() {
+        const name = document.getElementById("register-name").value.trim();
+        const email = document.getElementById("register-email").value.trim();
+        const password = document.getElementById("register-password").value;
+
+        if (!name || !email || !password) {
+            setMessage("register-message", "Please fill all fields.", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                setMessage("register-message", data.detail || "Registration failed", "error");
+                return;
+            }
+
+            setMessage("register-message", "Account created! You can now login.", "success");
+            // optionally auto-fill login email
+            document.getElementById("login-email").value = email;
+            showLogin();
+        } catch (err) {
+            setMessage("register-message", "Network error: " + err, "error");
+        }
+    }
+
+    async function fetchCurrentUser() {
+        try {
+            const res = await fetch(`${API}/auth/me`, {
+                headers: { "Authorization": `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || "Failed to fetch user");
+            }
+            currentUser = data;
+            localStorage.setItem("user", JSON.stringify(currentUser));
+        } catch (err) {
+            console.error("auth/me error", err);
+            currentUser = null;
+        }
+    }
+
+    function logout() {
+        authToken = null;
+        currentUser = null;
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        showLogin();
+    }
+
+    function afterLogin() {
+        if (!currentUser) return;
+
+        document.getElementById("user-info").textContent =
+            `Logged in as ${currentUser.email}`;
+        document.getElementById("role-badge").textContent = currentUser.role;
+
+        // Pre-fill registration name/email
+        document.getElementById("reg-name").value = currentUser.name;
+        document.getElementById("reg-email").value = currentUser.email;
+        document.getElementById("reg-name").disabled = true;
+        document.getElementById("reg-email").disabled = true;
+
+        // Show admin panel only for admins
+        document.getElementById("admin-section").style.display =
+            currentUser.role === "admin" ? "block" : "none";
+
+        loadEvents();
+        showDashboard();
+    }
+
+    // -------- EVENTS & REGISTRATIONS --------
+    async function loadEvents() {
+        document.getElementById("events-error").textContent = "";
+        document.getElementById("events-list").innerHTML = "";
+        document.getElementById("reg-event-select").innerHTML = "";
+        document.getElementById("admin-events-list").innerHTML = "";
+        document.getElementById("calendar-view").innerHTML = "";
+
+        try {
+            const res = await fetch(`${API}/events/`);
+            if (!res.ok) throw new Error("Failed to fetch events");
+            const events = await res.json();
+
+            const listDiv = document.getElementById("events-list");
+            const select = document.getElementById("reg-event-select");
+            const adminList = document.getElementById("admin-events-list");
+            const calendarDiv = document.getElementById("calendar-view");
+
+            if (events.length === 0) {
+                listDiv.textContent = "No events yet.";
+                return;
+            }
+
+            // Cards + select
+            events.forEach(ev => {
+                const div = document.createElement("div");
+                div.className = "event-card";
+                div.innerHTML = `
+                    <div class="event-card-title">${ev.name}</div>
+                    <div>${ev.description || ""}</div>
+                    <div class="event-location">
+                        ${ev.location || ""} 
+                        ${ev.date ? "<br>" + new Date(ev.date).toLocaleString() : ""}
+                    </div>
+                `;
+                listDiv.appendChild(div);
+
+                const opt = document.createElement("option");
+                opt.value = ev.id;
+                opt.textContent = ev.name;
+                select.appendChild(opt);
+
+                // Admin list items
+                if (currentUser.role === "admin") {
+                    const aDiv = document.createElement("div");
+                    aDiv.className = "event-card";
+                    aDiv.innerHTML = `
+                        <div class="event-card-title">${ev.name}</div>
+                        <div>${ev.description || ""}</div>
+                        <div class="event-location">
+                            ${ev.location || ""} 
+                            ${ev.date ? "<br>" + new Date(ev.date).toLocaleString() : ""}
+                        </div>
+                    `;
+                    const actions = document.createElement("div");
+                    actions.className = "event-actions";
+                    const editBtn = document.createElement("button");
+                    editBtn.className = "btn-secondary";
+                    editBtn.textContent = "Edit";
+                    editBtn.onclick = () => adminEditEvent(ev);
+                    const delBtn = document.createElement("button");
+                    delBtn.className = "btn-secondary";
+                    delBtn.textContent = "Delete";
+                    delBtn.onclick = () => adminDeleteEvent(ev.id);
+                    actions.appendChild(editBtn);
+                    actions.appendChild(delBtn);
+                    aDiv.appendChild(actions);
+                    adminList.appendChild(aDiv);
+                }
+            });
+
+            // Simple calendar grouping by date
+            const byDate = {};
+            events.forEach(ev => {
+                if (!ev.date) return;
+                const d = new Date(ev.date);
+                const key = d.toDateString();
+                if (!byDate[key]) byDate[key] = [];
+                byDate[key].push(ev);
+            });
+
+            Object.keys(byDate).sort((a, b) => new Date(a) - new Date(b)).forEach(day => {
+                const dayDiv = document.createElement("div");
+                dayDiv.className = "calendar-day";
+                dayDiv.textContent = day;
+                calendarDiv.appendChild(dayDiv);
+
+                byDate[day].forEach(ev => {
+                    const eDiv = document.createElement("div");
+                    eDiv.className = "calendar-entry";
+                    eDiv.textContent = `• ${ev.name} (${ev.location || "TBA"})`;
+                    calendarDiv.appendChild(eDiv);
+                });
+            });
+
+        } catch (err) {
+            document.getElementById("events-error").textContent =
+                "Error loading events: " + err;
+        }
+    }
+
+    async function registerForEvent() {
+        const eventId = document.getElementById("reg-event-select").value;
+        const notes = document.getElementById("reg-notes").value;
+        const name = document.getElementById("reg-name").value;
+        const email = document.getElementById("reg-email").value;
+
+        if (!eventId) {
+            setMessage("reg-message", "Please select an event.", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/registrations/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    event_id: parseInt(eventId),
+                    participant_name: name,
+                    participant_email: email,
+                    notes
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMessage("reg-message", data.detail || "Registration failed", "error");
+                return;
+            }
+            setMessage("reg-message", "Registration successful!", "success");
+            document.getElementById("reg-notes").value = "";
+        } catch (err) {
+            setMessage("reg-message", "Network error: " + err, "error");
+        }
+    }
+
+    async function loadMyRegistrations() {
+        if (!currentUser) return;
+        const container = document.getElementById("my-registrations");
+        container.textContent = "Loading...";
+
+        try {
+            const res = await fetch(`${API}/registrations/?email=${encodeURIComponent(currentUser.email)}`);
+            const data = await res.json();
+            if (!res.ok) {
+                container.textContent = data.detail || "Failed to load registrations.";
+                return;
+            }
+            if (data.length === 0) {
+                container.textContent = "You have no registrations.";
+                return;
+            }
+            container.innerHTML = "";
+            data.forEach(reg => {
+                const div = document.createElement("div");
+                div.textContent = `• Event #${reg.event_id} – ${new Date(reg.created_at).toLocaleString()} (${reg.notes || "no notes"})`;
+                container.appendChild(div);
+            });
+        } catch (err) {
+            container.textContent = "Network error: " + err;
+        }
+    }
+
+    // -------- ADMIN ACTIONS --------
+    async function adminCreateEvent() {
+        const name = document.getElementById("admin-event-name").value.trim();
+        const description = document.getElementById("admin-event-description").value.trim();
+        const dateVal = document.getElementById("admin-event-date").value;
+        const location = document.getElementById("admin-event-location").value.trim();
+
+        if (!name) {
+            setMessage("admin-create-message", "Name is required.", "error");
+            return;
+        }
+
+        const isoDate = dateVal ? new Date(dateVal).toISOString() : null;
+
+        try {
+            const res = await fetch(`${API}/events/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    name,
+                    description,
+                    date: isoDate,
+                    location
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMessage("admin-create-message", data.detail || "Failed to create event", "error");
+                return;
+            }
+            setMessage("admin-create-message", "Event created!", "success");
+            document.getElementById("admin-event-name").value = "";
+            document.getElementById("admin-event-description").value = "";
+            document.getElementById("admin-event-date").value = "";
+            document.getElementById("admin-event-location").value = "";
+            loadEvents();
+        } catch (err) {
+            setMessage("admin-create-message", "Network error: " + err, "error");
+        }
+    }
+
+    async function adminDeleteEvent(id) {
+        if (!confirm("Delete this event?")) return;
+        try {
+            const res = await fetch(`${API}/events/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.detail || "Failed to delete event");
+                return;
+            }
+            loadEvents();
+        } catch (err) {
+            alert("Network error: " + err);
+        }
+    }
+
+    async function adminEditEvent(ev) {
+        const newName = prompt("New name:", ev.name);
+        if (newName === null) return;
+        const newDesc = prompt("New description:", ev.description || "");
+        if (newDesc === null) return;
+        const newLoc = prompt("New location:", ev.location || "");
+        if (newLoc === null) return;
+
+        try {
+            const res = await fetch(`${API}/events/${ev.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    name: newName,
+                    description: newDesc,
+                    location: newLoc,
+                    date: ev.date  // keep same date
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.detail || "Failed to update event");
+                return;
+            }
+            loadEvents();
+        } catch (err) {
+            alert("Network error: " + err);
+        }
+    }
+
+    // -------- INITIALIZE --------
+    (async function init() {
+        const storedToken = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+
+        if (storedToken && storedUser) {
+            authToken = storedToken;
+            currentUser = JSON.parse(storedUser);
+            afterLogin();
+        } else {
+            showLogin();
+        }
+    })();
+</script>
+
+</body>
+</html>

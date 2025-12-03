@@ -40,11 +40,10 @@ def test_list_registrations():
     assert isinstance(response.json(), list)
 
 def test_event_not_found():
-    # Attempt to register with invalid event_id
     reg_response = client.post("/registrations/", json={
         "event_id": 999999,
         "participant_name": "Error Case",
         "participant_email": "error@example.com",
         "notes": "Invalid event"
     })
-    assert reg_response.status_code in [400, 404]  # Depending on your error handling
+    assert reg_response.status_code in [400, 404]  
