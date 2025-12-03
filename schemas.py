@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -73,6 +73,7 @@ class RegistrationCreate(RegistrationBase):
 
 class RegistrationRead(RegistrationBase):
     id: int
+    event_id: int
     event_name: Optional[str] = None
     event_date: Optional[datetime] = None
     event_location: Optional[str] = None

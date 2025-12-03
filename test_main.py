@@ -8,7 +8,7 @@ TEST_PASSWORD = "test1234"   # MUST BE < 72 chars because bcrypt
 
 
 def get_auth_headers():
-    # Register user
+    # Register test user
     client.post(
         "/auth/register",
         json={
@@ -17,6 +17,18 @@ def get_auth_headers():
             "password": TEST_PASSWORD,
         },
     )
+
+    # --- Make user admin for tests ---
+    from database import SessionLocal
+    from models import User
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == TEST_EMAIL).first()
+    if user:
+        user.role = "admin"
+        db.commit()
+    db.close()
+    # ---------------------------------
 
     # Login user
     login_res = client.post(
@@ -78,8 +90,17 @@ def test_create_registration():
         headers=headers,
     )
 
-    assert reg_response.status_code == 200
-    assert reg_response.json()["event_id"] == event_id
+    print("REG RESPONSE:", reg_response.json())  # DEBUG PRINT
+
+    assert reg_response.status_code == 200, \
+        f"Unexpected status code: {reg_response.status_code}, body={reg_response.text}"
+
+    data = reg_response.json()
+
+    assert "event_id" in data, \
+        f"event_id missing from response. Full response: {data}"
+
+    assert data["event_id"] == event_id
 
 
 def test_event_not_found():
