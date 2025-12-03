@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models, schemas
+from sqlalchemy import text
+
 
 from fastapi.responses import StreamingResponse
 from io import BytesIO
@@ -72,7 +74,7 @@ def download_blob(container: str, blob_name: str):
 @router.get("/health/db")
 def db_health(db: Session = Depends(get_db)):
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"status": "ok"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"DB error: {e}")
