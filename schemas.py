@@ -73,12 +73,9 @@ class RegistrationCreate(RegistrationBase):
 
 class RegistrationRead(RegistrationBase):
     id: int
-    event_id: int
-    event_name: str
-    event_date: datetime
-    event_location: str
-    created_at: datetime
+    event_name: Optional[str] = None
+    event_date: Optional[datetime] = None
+    event_location: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 

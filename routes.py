@@ -77,7 +77,6 @@ def delete_event(
     return {"deleted": event_id}
 
 
-# ---------- REGISTRATIONS ----------
 
 @router.post("/registrations/", response_model=schemas.RegistrationRead)
 def create_registration(
@@ -88,11 +87,24 @@ def create_registration(
     event = db.query(models.Event).filter(models.Event.id == registration.event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    db_registration = models.Registration(**registration.dict())
+    db_registration = models.Registration(**registration.model_dump())
     db.add(db_registration)
     db.commit()
     db.refresh(db_registration)
-    return db_registration
+
+    event = db.query(models.Event).filter(models.Event.id == registration.event_id).first()
+
+    return {
+        "id": db_registration.id,
+        "event_id": db_registration.event_id,
+        "participant_name": db_registration.participant_name,
+        "participant_email": db_registration.participant_email,
+        "notes": db_registration.notes,
+        "event_name": event.name if event else None,
+        "event_date": event.date if event else None,
+        "event_location": event.location if event else None,
+    }
+
 
 
 @router.get("/registrations/", response_model=list[schemas.RegistrationRead])
@@ -123,8 +135,6 @@ def read_registrations(db: Session = Depends(get_db), email: str = None):
     return output
 
 
-
-# ---------- BLOB STORAGE ----------
 
 @router.post("/blobs/upload/")
 async def upload_blob(container: str, file: UploadFile = File(...)):
