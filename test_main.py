@@ -6,6 +6,7 @@ client = TestClient(app)
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "test1234"   # MUST BE < 72 chars because bcrypt
 
+
 def get_auth_headers():
     # Register user
     client.post(
@@ -21,7 +22,7 @@ def get_auth_headers():
     login_res = client.post(
         "/auth/login",
         data={
-            "username": TEST_EMAIL,  # OAuth2 expects username
+            "username": TEST_EMAIL,
             "password": TEST_PASSWORD,
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -46,14 +47,13 @@ def test_create_event():
     )
 
     assert response.status_code == 200
-    data = response.json()
-    assert data["name"] == "Test Event"
+    assert response.json()["name"] == "Test Event"
 
 
 def test_create_registration():
     headers = get_auth_headers()
 
-    # We need at least 1 event to register for
+    # Create event
     event = client.post(
         "/events/",
         json={
@@ -79,8 +79,7 @@ def test_create_registration():
     )
 
     assert reg_response.status_code == 200
-    data = reg_response.json()
-    assert data["event_id"] == event_id
+    assert reg_response.json()["event_id"] == event_id
 
 
 def test_event_not_found():
