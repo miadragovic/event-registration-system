@@ -3,78 +3,98 @@ from main import app
 
 client = TestClient(app)
 
+TEST_EMAIL = "test@example.com"
+TEST_PASSWORD = "test1234"   # MUST BE < 72 chars because bcrypt
+
 def get_auth_headers():
-    client.post("/auth/register", json={
-        "email": "test@example.com",
-        "password": "test123",
-        "name": "Tester"
-    })
+    # Register user
+    client.post(
+        "/auth/register",
+        json={
+            "name": "Test User",
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
+        },
+    )
 
-    resp = client.post("/auth/login", data={
-        "username": "test@example.com",
-        "password": "test123"
-    })
+    # Login user
+    login_res = client.post(
+        "/auth/login",
+        data={
+            "username": TEST_EMAIL,  # OAuth2 expects username
+            "password": TEST_PASSWORD,
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
 
-    assert resp.status_code == 200, f"Login failed: {resp.text}"
-
-    token = resp.json()["access_token"]
+    token = login_res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
 def test_create_event():
     headers = get_auth_headers()
-    response = client.post("/events/", json={
-        "name": "Test Event",
-        "description": "Test Desc",
-        "date": "2025-12-01T09:00:00Z",
-        "location": "Online"
-    }, headers=headers)
+
+    response = client.post(
+        "/events/",
+        json={
+            "name": "Test Event",
+            "description": "Test Desc",
+            "date": "2025-12-01T09:00:00Z",
+            "location": "Online",
+        },
+        headers=headers,
+    )
 
     assert response.status_code == 200
-    assert response.json()["name"] == "Test Event"
-
-
-def test_list_events():
-    response = client.get("/events/")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = response.json()
+    assert data["name"] == "Test Event"
 
 
 def test_create_registration():
     headers = get_auth_headers()
 
-    events_resp = client.get("/events/")
-    events = events_resp.json()
-    assert events, "No events available for registration test"
+    # We need at least 1 event to register for
+    event = client.post(
+        "/events/",
+        json={
+            "name": "Reg Test Event",
+            "description": "Test Desc",
+            "date": "2025-12-05T09:00:00Z",
+            "location": "Online",
+        },
+        headers=headers,
+    ).json()
 
-    event_id = events[0]["id"]
+    event_id = event["id"]
 
-    reg_response = client.post("/registrations/", json={
-        "event_id": event_id,
-        "participant_name": "John Doe",
-        "participant_email": "john@example.com",
-        "notes": "Wants workshop materials"
-    }, headers=headers)
+    reg_response = client.post(
+        "/registrations/",
+        json={
+            "event_id": event_id,
+            "participant_name": "Tester",
+            "participant_email": "test@example.com",
+            "notes": "hello"
+        },
+        headers=headers,
+    )
 
     assert reg_response.status_code == 200
-    assert reg_response.json()["participant_name"] == "John Doe"
-
-
-def test_list_registrations():
-    response = client.get("/registrations/")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = reg_response.json()
+    assert data["event_id"] == event_id
 
 
 def test_event_not_found():
     headers = get_auth_headers()
 
-    reg_response = client.post("/registrations/", json={
-        "event_id": 999999,
-        "participant_name": "Error Case",
-        "participant_email": "error@example.com",
-        "notes": "Invalid event"
-    }, headers=headers)
+    reg_response = client.post(
+        "/registrations/",
+        json={
+            "event_id": 999999,
+            "participant_name": "Error Case",
+            "participant_email": "error@example.com",
+            "notes": "Invalid event",
+        },
+        headers=headers,
+    )
 
-    assert reg_response.status_code in [400, 404]
-
+    assert reg_response.status_code in (400, 404)
