@@ -10,7 +10,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String(255), unique=True, index=True)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="user")  # "admin" or "user"
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -20,7 +20,7 @@ class Event(Base):
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String(255), index=True)
     description = Column(String)
     date = Column(DateTime)
     location = Column(String)
