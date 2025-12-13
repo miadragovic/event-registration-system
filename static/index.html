@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <title>Event Registration System</title>
+
+    <!-- ✅ FullCalendar v5 CSS (WORKS WITHOUT BUILD TOOLS) -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css?v=12345" rel="stylesheet" />
+
     <style>
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -11,7 +15,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
             background: #ffffff;
             border-radius: 12px;
@@ -27,7 +31,7 @@
         }
 
         h2 {
-            margin-top: 32px;
+            margin-top: 24px;
             margin-bottom: 12px;
             color: #4d102b;
         }
@@ -48,7 +52,7 @@
 
         button {
             border: none;
-            background: #800020; /* burgundy */
+            background: #800020;
             color: white;
             cursor: pointer;
             font-weight: 600;
@@ -57,6 +61,16 @@
 
         button:hover {
             background: #a01838;
+        }
+
+        .btn-secondary {
+            background: #f3e5ec;
+            color: #4d102b;
+            border: 1px solid #d8b4ce;
+        }
+
+        .btn-secondary:hover {
+            background: #e7d2e2;
         }
 
         .event-card {
@@ -96,16 +110,17 @@
             margin-left: 6px;
         }
 
-        .link {
-            color: #800020;
-            cursor: pointer;
-            text-decoration: underline;
-            font-size: 14px;
-        }
-
         .small-text {
             font-size: 13px;
             color: #555;
+        }
+
+        .section-card {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid #f0d7e2;
+            background: #fff;
         }
 
         .error-text {
@@ -120,40 +135,83 @@
             margin-top: 8px;
         }
 
-        .calendar-day {
-            margin-top: 8px;
-            margin-bottom: 4px;
-            font-weight: 600;
-            color: #4d102b;
-        }
-
-        .calendar-entry {
-            font-size: 13px;
-            margin-left: 12px;
-        }
-
-        .btn-secondary {
-            background: #f3e5ec;
-            color: #4d102b;
-            border: 1px solid #d8b4ce;
-        }
-
-        .btn-secondary:hover {
-            background: #e7d2e2;
-        }
-
-        .event-actions {
-            margin-top: 8px;
+        /* Tabs */
+        .tabs {
             display: flex;
             gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f0d7e2;
         }
 
-        .section-card {
-            margin-top: 16px;
-            padding: 16px 18px;
-            border-radius: 10px;
-            border: 1px solid #f0d7e2;
-            background: #fff;
+        .tab-btn {
+            padding: 8px 14px;
+            border-radius: 999px 999px 0 0;
+            border: 1px solid transparent;
+            background: #fde7f0;
+            color: #800020;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: #800020;
+            color: #fff;
+            border-color: #800020;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .capacity-text {
+            font-size: 13px;
+            color: #444;
+            margin-top: 4px;
+        }
+
+        .registration-row {
+            margin-bottom: 6px;
+        }
+
+        .registration-row button {
+            width: auto;
+            padding: 4px 10px;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        /* Calendar style overrides */
+        #calendar {
+            margin-top: 10px;
+        }
+
+        .fc-scrollgrid {
+            border: 1px solid #f0d7e2 !important;
+        }
+
+        .fc td, 
+        .fc th {
+            border-color: #f7dde9 !important;
+        }
+
+        .fc-toolbar-title {
+            color: #4d102b;
+        }
+
+        .fc-button-primary {
+            background-color: #800020 !important;
+            border-color: #800020 !important;
+        }
+
+        .fc-daygrid-event {
+            background-color: #f6d1e3 !important;
+            border: 1px solid #e4a8c6 !important;
+            color: #4d102b !important;
         }
     </style>
 </head>
@@ -163,11 +221,10 @@
 
     <h1>Event Registration System</h1>
 
-    <!-- LOGIN / REGISTER VIEW -->
+    <!-- LOGIN SECTION -->
     <div id="auth-section">
         <h2 id="auth-title">Login</h2>
 
-        <!-- LOGIN FORM -->
         <div id="login-form">
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
@@ -179,7 +236,6 @@
             <p id="auth-message" class="error-text"></p>
         </div>
 
-        <!-- REGISTER FORM -->
         <div id="register-form" style="display:none;">
             <input type="text" id="register-name" placeholder="Your Name">
             <input type="email" id="register-email" placeholder="Your Email">
@@ -193,7 +249,7 @@
         </div>
     </div>
 
-    <!-- DASHBOARD VIEW -->
+    <!-- DASHBOARD -->
     <div id="dashboard-section" style="display:none;">
         <div class="top-bar">
             <div>
@@ -203,488 +259,428 @@
             <button class="btn-secondary" onclick="logout()">Logout</button>
         </div>
 
-        <!-- EVENTS LIST -->
-        <div class="section-card">
-            <h2>Available Events</h2>
-            <div id="events-error" class="error-text"></div>
-            <div id="events-list"></div>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="events-tab">Events</button>
+            <button class="tab-btn" data-tab="calendar-tab">Calendar</button>
+            <button class="tab-btn" data-tab="registrations-tab">My Registrations</button>
         </div>
 
-        <!-- USER REGISTRATION SECTION -->
-        <div class="section-card" id="user-registration-section">
-            <h2>Register for an Event</h2>
+        <!-- EVENTS TAB -->
+        <div id="events-tab" class="tab-content active">
+            <div class="section-card">
+                <h2>Available Events</h2>
+                <div id="events-list"></div>
+            </div>
 
-            <select id="reg-event-select"></select>
-            <input type="text" id="reg-name" placeholder="Your Name">
-            <input type="email" id="reg-email" placeholder="Your Email">
-            <textarea id="reg-notes" placeholder="Notes (optional)"></textarea>
-            <button onclick="registerForEvent()">Register</button>
-            <p id="reg-message" class=""></p>
+            <div class="section-card">
+                <h2>Register for an Event</h2>
+                <select id="reg-event-select"></select>
+                <input type="text" id="reg-name" disabled>
+                <input type="email" id="reg-email" disabled>
+                <textarea id="reg-notes" placeholder="Notes (optional)"></textarea>
+                <button onclick="registerForEvent()">Register</button>
+                <p id="reg-message"></p>
+            </div>
+
+            <!-- ADMIN -->
+            <div class="section-card" id="admin-section" style="display:none;">
+                <h2>Admin: Manage Events</h2>
+
+                <h3>Create New Event</h3>
+                <input type="text" id="admin-event-name" placeholder="Event Name">
+                <textarea id="admin-event-description" placeholder="Description"></textarea>
+                <input type="datetime-local" id="admin-event-date">
+                <input type="text" id="admin-event-location" placeholder="Location">
+                <input type="number" id="admin-event-capacity" placeholder="Max Capacity (optional)" min="1">
+                <button onclick="adminCreateEvent()">Create Event</button>
+                <p id="admin-create-message"></p>
+
+                <h3>Existing Events</h3>
+                <div id="admin-events-list"></div>
+            </div>
         </div>
 
-        <!-- MY REGISTRATIONS SECTION -->
-        <div class="section-card">
-            <h2>My Registrations</h2>
-            <button class="btn-secondary" onclick="loadMyRegistrations()">Load my registrations</button>
-            <div id="my-registrations" class="small-text" style="margin-top:10px;"></div>
+        <!-- CALENDAR TAB -->
+        <div id="calendar-tab" class="tab-content">
+            <div class="section-card">
+                <h2>My Event Calendar</h2>
+                <p class="small-text" id="calendar-hint"></p>
+                <div id="calendar"></div>
+            </div>
         </div>
 
-        <!-- ADMIN SECTION -->
-        <div class="section-card" id="admin-section" style="display:none;">
-            <h2>Admin: Manage Events</h2>
-
-            <h3 style="margin-top:8px;">Create New Event</h3>
-            <input type="text" id="admin-event-name" placeholder="Event Name">
-            <textarea id="admin-event-description" placeholder="Description"></textarea>
-            <input type="datetime-local" id="admin-event-date">
-            <input type="text" id="admin-event-location" placeholder="Location">
-            <button onclick="adminCreateEvent()">Create Event</button>
-            <p id="admin-create-message" class=""></p>
-
-            <h3 style="margin-top:16px;">Edit / Delete Events</h3>
-            <div id="admin-events-list"></div>
-
-            <h3 style="margin-top:16px;">Calendar View</h3>
-            <div id="calendar-view" class="small-text"></div>
+        <!-- REGISTRATIONS TAB -->
+        <div id="registrations-tab" class="tab-content">
+            <div class="section-card">
+                <h2>My Registrations</h2>
+                <button class="btn-secondary" onclick="loadMyRegistrations()">Refresh</button>
+                <div id="my-registrations" class="small-text" style="margin-top:10px;"></div>
+            </div>
         </div>
 
     </div>
 
 </div>
 
+<!-- ✅ FullCalendar v5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js?v=12345"></script>
+
 <script>
-    // -------- API BASE --------
-    const API = (
-        window.location.hostname.includes("127.0.0.1") ||
-        window.location.hostname.includes("localhost")
-    )
+/* CONFIG */
+
+const API = (
+    window.location.hostname.includes("127.0.0.1") ||
+    window.location.hostname.includes("localhost")
+)
     ? "http://127.0.0.1:8000"
     : "https://eventregistration-api-a6dmevh3bbafc2c5.westeurope-01.azurewebsites.net";
 
+let authToken = null;
+let currentUser = null;
+let calendar = null;
 
-    let authToken = null;
-    let currentUser = null;
+/* HELPERS */
 
-    // -------- VIEW HELPERS --------
-    function showLogin() {
-        document.getElementById("auth-section").style.display = "block";
-        document.getElementById("dashboard-section").style.display = "none";
-        document.getElementById("auth-title").textContent = "Login";
-        document.getElementById("login-form").style.display = "block";
-        document.getElementById("register-form").style.display = "none";
-        document.getElementById("auth-message").textContent = "";
+function setMessage(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text || "";
+    el.className = type === "error" ? "error-text" : (type === "success" ? "success-text" : "");
+}
+
+function showLogin() {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("dashboard-section").style.display = "none";
+    document.getElementById("login-form").style.display = "block";
+    document.getElementById("register-form").style.display = "none";
+}
+
+function showRegister() {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("dashboard-section").style.display = "none";
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("register-form").style.display = "block";
+}
+
+/* TABS */
+
+function activateTab(tabId) {
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabId);
+    });
+    document.querySelectorAll(".tab-content").forEach(div => {
+        div.classList.toggle("active", div.id === tabId);
+    });
+
+    if (tabId === "calendar-tab") loadCalendarEvents();
+    if (tabId === "registrations-tab") loadMyRegistrations();
+}
+
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("tab-btn")) {
+        activateTab(e.target.dataset.tab);
+    }
+});
+
+/* AUTH */
+
+async function login() {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    const body = new URLSearchParams();
+    body.append("username", email);
+    body.append("password", password);
+
+    const res = await fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        setMessage("auth-message", data.detail || "Login failed", "error");
+        return;
     }
 
-    function showRegister() {
-        document.getElementById("auth-section").style.display = "block";
-        document.getElementById("dashboard-section").style.display = "none";
-        document.getElementById("auth-title").textContent = "Register";
-        document.getElementById("login-form").style.display = "none";
-        document.getElementById("register-form").style.display = "block";
-        document.getElementById("register-message").textContent = "";
+    authToken = data.access_token;
+    localStorage.setItem("token", authToken);
+
+    await fetchCurrentUser();
+    afterLogin();
+}
+
+async function registerUser() {
+    const name = document.getElementById("register-name").value.trim();
+    const email = document.getElementById("register-email").value.trim();
+    const password = document.getElementById("register-password").value;
+
+    const res = await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        setMessage("register-message", data.detail || "Registration failed", "error");
+        return;
     }
 
-    function showDashboard() {
-        document.getElementById("auth-section").style.display = "none";
-        document.getElementById("dashboard-section").style.display = "block";
-        document.getElementById("reg-message").textContent = "";
-    }
+    setMessage("register-message", "Account created! Please log in.", "success");
+    showLogin();
+    document.getElementById("login-email").value = email;
+}
 
-    function setMessage(id, text, type) {
-        const el = document.getElementById(id);
-        el.textContent = text;
-        el.className = type === "error" ? "error-text" : "success-text";
-    }
+async function fetchCurrentUser() {
+    const res = await fetch(`${API}/auth/me`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+    });
+    currentUser = await res.json();
+}
 
-    // -------- AUTH --------
-    async function login() {
-        const email = document.getElementById("login-email").value.trim();
-        const password = document.getElementById("login-password").value;
+function afterLogin() {
+    document.getElementById("auth-section").style.display = "none";
+    document.getElementById("dashboard-section").style.display = "block";
 
-        if (!email || !password) {
-            setMessage("auth-message", "Please enter email and password.", "error");
-            return;
+    document.getElementById("user-info").textContent = currentUser.email;
+    document.getElementById("role-badge").textContent = currentUser.role;
+
+    document.getElementById("reg-name").value = currentUser.name;
+    document.getElementById("reg-email").value = currentUser.email;
+
+    document.getElementById("admin-section").style.display =
+        currentUser.role === "admin" ? "block" : "none";
+
+    loadEvents();
+    activateTab("events-tab");
+}
+
+function logout() {
+    authToken = null;
+    currentUser = null;
+    localStorage.clear();
+    showLogin();
+}
+
+/* EVENTS */
+
+async function loadEvents() {
+    const res = await fetch(`${API}/events/`);
+    const events = await res.json();
+
+    const list = document.getElementById("events-list");
+    const select = document.getElementById("reg-event-select");
+    const adminList = document.getElementById("admin-events-list");
+
+    list.innerHTML = "";
+    select.innerHTML = "";
+    adminList.innerHTML = "";
+
+    events.forEach(ev => {
+        const current = ev.current_count ?? 0;
+
+        const spotsText = ev.max_capacity == null
+            ? "Unlimited spots"
+            : `${ev.max_capacity - current} spots left`;
+
+        const card = document.createElement("div");
+        card.className = "event-card";
+        card.innerHTML = `
+            <div class="event-card-title">${ev.name}</div>
+            <div>${ev.description || ""}</div>
+            <div class="event-location">
+                ${ev.location || ""}<br>
+                ${ev.date ? new Date(ev.date).toLocaleString() : ""}
+            </div>
+            <div class="capacity-text">${spotsText}</div>
+        `;
+        list.appendChild(card);
+
+        const opt = document.createElement("option");
+        opt.value = ev.id;
+        opt.textContent = `${ev.name} (${spotsText})`;
+        select.appendChild(opt);
+
+        if (currentUser.role === "admin") {
+            const adminCard = document.createElement("div");
+            adminCard.className = "event-card";
+            adminCard.innerHTML = `
+                <div class="event-card-title">${ev.name}</div>
+                <div>${ev.description || ""}</div>
+                <div class="event-location">${ev.location}<br>${new Date(ev.date).toLocaleString()}</div>
+                <div class="capacity-text">Capacity: ${ev.max_capacity ?? "unlimited"} – Registered: ${current}</div>
+                <button class="btn-secondary" onclick="adminDeleteEvent(${ev.id})">Delete</button>
+            `;
+            adminList.appendChild(adminCard);
         }
+    });
+}
 
-        try {
-            const body = new URLSearchParams();
-            body.append("username", email);  // OAuth2PasswordRequestForm expects "username"
-            body.append("password", password);
+/* REGISTER FOR EVENT */
 
-            const res = await fetch(`${API}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body
-            });
+async function registerForEvent() {
+    const event_id = parseInt(document.getElementById("reg-event-select").value);
+    const notes = document.getElementById("reg-notes").value;
 
-            const data = await res.json();
-            if (!res.ok) {
-                setMessage("auth-message", data.detail || "Login failed", "error");
-                return;
-            }
+    const res = await fetch(`${API}/registrations/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+            event_id,
+            participant_name: currentUser.name,
+            participant_email: currentUser.email,
+            notes
+        })
+    });
 
-            authToken = data.access_token;
-            localStorage.setItem("token", authToken);
+    if (res.ok) {
+        setMessage("reg-message", "Registered successfully!", "success");
+        loadEvents();
+        loadMyRegistrations();
+        loadCalendarEvents();
+    }
+}
 
-            // Get current user info
-            await fetchCurrentUser();
-            afterLogin();
-        } catch (err) {
-            setMessage("auth-message", "Network error: " + err, "error");
+/* FULLCALENDAR */
+
+function ensureCalendar() {
+    if (calendar) return; // already created
+
+    const calendarEl = document.getElementById("calendar");
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        height: 600,
+        headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: ""
         }
+    });
+
+    calendar.render();
+}
+
+async function loadCalendarEvents() {
+    ensureCalendar();
+
+    let url = currentUser.role === "admin"
+        ? `${API}/registrations/`
+        : `${API}/registrations/?email=${currentUser.email}`;
+
+    const res = await fetch(url);
+    const regs = await res.json();
+
+    calendar.removeAllEvents();
+
+    const events = regs.map(r => ({
+        title: r.event_name,
+        start: r.event_date
+    }));
+
+    calendar.addEventSource(events);
+}
+
+/* REGISTRATIONS */
+
+async function loadMyRegistrations() {
+    const res = await fetch(`${API}/registrations/?email=${currentUser.email}`);
+    const regs = await res.json();
+
+    const box = document.getElementById("my-registrations");
+    box.innerHTML = "";
+
+    if (regs.length === 0) {
+        box.textContent = "You have no registrations.";
+        return;
     }
 
-    async function registerUser() {
-        const name = document.getElementById("register-name").value.trim();
-        const email = document.getElementById("register-email").value.trim();
-        const password = document.getElementById("register-password").value;
+    regs.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "registration-row";
+        row.innerHTML = `
+            • ${r.event_name} – ${new Date(r.event_date).toLocaleString()}
+        `;
+        const btn = document.createElement("button");
+        btn.className = "btn-secondary";
+        btn.textContent = "Unregister";
+        btn.onclick = () => unregister(r.id);
+        row.appendChild(btn);
+        box.appendChild(row);
+    });
+}
 
-        if (!name || !email || !password) {
-            setMessage("register-message", "Please fill all fields.", "error");
-            return;
-        }
+async function unregister(id) {
+    await fetch(`${API}/registrations/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${authToken}` }
+    });
 
-        try {
-            const res = await fetch(`${API}/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password })
-            });
+    loadMyRegistrations();
+    loadEvents();
+    loadCalendarEvents();
+}
 
-            const data = await res.json();
-            if (!res.ok) {
-                setMessage("register-message", data.detail || "Registration failed", "error");
-                return;
-            }
+/* ADMIN */
 
-            setMessage("register-message", "Account created! You can now login.", "success");
-            // optionally auto-fill login email
-            document.getElementById("login-email").value = email;
-            showLogin();
-        } catch (err) {
-            setMessage("register-message", "Network error: " + err, "error");
-        }
+async function adminCreateEvent() {
+    const name = document.getElementById("admin-event-name").value;
+    const description = document.getElementById("admin-event-description").value;
+    const date = document.getElementById("admin-event-date").value;
+    const location = document.getElementById("admin-event-location").value;
+    const capacity = document.getElementById("admin-event-capacity").value;
+
+    const res = await fetch(`${API}/events/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+            name,
+            description,
+            date: new Date(date).toISOString(),
+            location,
+            max_capacity: capacity ? parseInt(capacity) : null
+        })
+    });
+
+    if (res.ok) {
+        setMessage("admin-create-message", "Event created!", "success");
+        loadEvents();
+        loadCalendarEvents();
     }
+}
 
-    async function fetchCurrentUser() {
-        try {
-            const res = await fetch(`${API}/auth/me`, {
-                headers: { "Authorization": `Bearer ${authToken}` }
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.detail || "Failed to fetch user");
-            }
-            currentUser = data;
-            localStorage.setItem("user", JSON.stringify(currentUser));
-        } catch (err) {
-            console.error("auth/me error", err);
-            currentUser = null;
-        }
-    }
+async function adminDeleteEvent(id) {
+    await fetch(`${API}/events/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${authToken}` }
+    });
 
-    function logout() {
-        authToken = null;
-        currentUser = null;
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+    loadEvents();
+    loadCalendarEvents();
+}
+
+/* INIT */
+
+(async function init() {
+    const token = localStorage.getItem("token");
+    if (!token) return showLogin();
+
+    authToken = token;
+
+    try {
+        await fetchCurrentUser();
+        afterLogin();
+    } catch {
         showLogin();
     }
-
-    function afterLogin() {
-        if (!currentUser) return;
-
-        document.getElementById("user-info").textContent =
-            `Logged in as ${currentUser.email}`;
-        document.getElementById("role-badge").textContent = currentUser.role;
-
-        // Pre-fill registration name/email
-        document.getElementById("reg-name").value = currentUser.name;
-        document.getElementById("reg-email").value = currentUser.email;
-        document.getElementById("reg-name").disabled = true;
-        document.getElementById("reg-email").disabled = true;
-
-        // Show admin panel only for admins
-        document.getElementById("admin-section").style.display =
-            currentUser.role === "admin" ? "block" : "none";
-
-        loadEvents();
-        showDashboard();
-    }
-
-    // -------- EVENTS & REGISTRATIONS --------
-    async function loadEvents() {
-        document.getElementById("events-error").textContent = "";
-        document.getElementById("events-list").innerHTML = "";
-        document.getElementById("reg-event-select").innerHTML = "";
-        document.getElementById("admin-events-list").innerHTML = "";
-        document.getElementById("calendar-view").innerHTML = "";
-
-        try {
-            const res = await fetch(`${API}/events/`);
-            if (!res.ok) throw new Error("Failed to fetch events");
-            const events = await res.json();
-
-            const listDiv = document.getElementById("events-list");
-            const select = document.getElementById("reg-event-select");
-            const adminList = document.getElementById("admin-events-list");
-            const calendarDiv = document.getElementById("calendar-view");
-
-            if (events.length === 0) {
-                listDiv.textContent = "No events yet.";
-                return;
-            }
-
-            // Cards + select
-            events.forEach(ev => {
-                const div = document.createElement("div");
-                div.className = "event-card";
-                div.innerHTML = `
-                    <div class="event-card-title">${ev.name}</div>
-                    <div>${ev.description || ""}</div>
-                    <div class="event-location">
-                        ${ev.location || ""} 
-                        ${ev.date ? "<br>" + new Date(ev.date).toLocaleString() : ""}
-                    </div>
-                `;
-                listDiv.appendChild(div);
-
-                const opt = document.createElement("option");
-                opt.value = ev.id;
-                opt.textContent = ev.name;
-                select.appendChild(opt);
-
-                // Admin list items
-                if (currentUser.role === "admin") {
-                    const aDiv = document.createElement("div");
-                    aDiv.className = "event-card";
-                    aDiv.innerHTML = `
-                        <div class="event-card-title">${ev.name}</div>
-                        <div>${ev.description || ""}</div>
-                        <div class="event-location">
-                            ${ev.location || ""} 
-                            ${ev.date ? "<br>" + new Date(ev.date).toLocaleString() : ""}
-                        </div>
-                    `;
-                    const actions = document.createElement("div");
-                    actions.className = "event-actions";
-                    const editBtn = document.createElement("button");
-                    editBtn.className = "btn-secondary";
-                    editBtn.textContent = "Edit";
-                    editBtn.onclick = () => adminEditEvent(ev);
-                    const delBtn = document.createElement("button");
-                    delBtn.className = "btn-secondary";
-                    delBtn.textContent = "Delete";
-                    delBtn.onclick = () => adminDeleteEvent(ev.id);
-                    actions.appendChild(editBtn);
-                    actions.appendChild(delBtn);
-                    aDiv.appendChild(actions);
-                    adminList.appendChild(aDiv);
-                }
-            });
-
-            // Simple calendar grouping by date
-            const byDate = {};
-            events.forEach(ev => {
-                if (!ev.date) return;
-                const d = new Date(ev.date);
-                const key = d.toDateString();
-                if (!byDate[key]) byDate[key] = [];
-                byDate[key].push(ev);
-            });
-
-            Object.keys(byDate).sort((a, b) => new Date(a) - new Date(b)).forEach(day => {
-                const dayDiv = document.createElement("div");
-                dayDiv.className = "calendar-day";
-                dayDiv.textContent = day;
-                calendarDiv.appendChild(dayDiv);
-
-                byDate[day].forEach(ev => {
-                    const eDiv = document.createElement("div");
-                    eDiv.className = "calendar-entry";
-                    eDiv.textContent = `• ${ev.name} (${ev.location || "TBA"})`;
-                    calendarDiv.appendChild(eDiv);
-                });
-            });
-
-        } catch (err) {
-            document.getElementById("events-error").textContent =
-                "Error loading events: " + err;
-        }
-    }
-
-    async function registerForEvent() {
-        const eventId = document.getElementById("reg-event-select").value;
-        const notes = document.getElementById("reg-notes").value;
-        const name = document.getElementById("reg-name").value;
-        const email = document.getElementById("reg-email").value;
-
-        if (!eventId) {
-            setMessage("reg-message", "Please select an event.", "error");
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API}/registrations/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${authToken}`
-                },
-                body: JSON.stringify({
-                    event_id: parseInt(eventId),
-                    participant_name: name,
-                    participant_email: email,
-                    notes
-                })
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setMessage("reg-message", data.detail || "Registration failed", "error");
-                return;
-            }
-            setMessage("reg-message", "Registration successful!", "success");
-            document.getElementById("reg-notes").value = "";
-        } catch (err) {
-            setMessage("reg-message", "Network error: " + err, "error");
-        }
-    }
-
-    async function loadMyRegistrations() {
-        if (!currentUser) return;
-        const container = document.getElementById("my-registrations");
-        container.textContent = "Loading...";
-
-        try {
-            const res = await fetch(`${API}/registrations/?email=${encodeURIComponent(currentUser.email)}`);
-            const data = await res.json();
-            if (!res.ok) {
-                container.textContent = data.detail || "Failed to load registrations.";
-                return;
-            }
-            if (data.length === 0) {
-                container.textContent = "You have no registrations.";
-                return;
-            }
-            container.innerHTML = "";
-            data.forEach(reg => {
-                const div = document.createElement("div");
-                div.textContent = `• Event #${reg.event_id} – ${new Date(reg.created_at).toLocaleString()} (${reg.notes || "no notes"})`;
-                container.appendChild(div);
-            });
-        } catch (err) {
-            container.textContent = "Network error: " + err;
-        }
-    }
-
-    // -------- ADMIN ACTIONS --------
-    async function adminCreateEvent() {
-        const name = document.getElementById("admin-event-name").value.trim();
-        const description = document.getElementById("admin-event-description").value.trim();
-        const dateVal = document.getElementById("admin-event-date").value;
-        const location = document.getElementById("admin-event-location").value.trim();
-
-        if (!name) {
-            setMessage("admin-create-message", "Name is required.", "error");
-            return;
-        }
-
-        const isoDate = dateVal ? new Date(dateVal).toISOString() : null;
-
-        try {
-            const res = await fetch(`${API}/events/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${authToken}`
-                },
-                body: JSON.stringify({
-                    name,
-                    description,
-                    date: isoDate,
-                    location
-                })
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setMessage("admin-create-message", data.detail || "Failed to create event", "error");
-                return;
-            }
-            setMessage("admin-create-message", "Event created!", "success");
-            document.getElementById("admin-event-name").value = "";
-            document.getElementById("admin-event-description").value = "";
-            document.getElementById("admin-event-date").value = "";
-            document.getElementById("admin-event-location").value = "";
-            loadEvents();
-        } catch (err) {
-            setMessage("admin-create-message", "Network error: " + err, "error");
-        }
-    }
-
-    async function adminDeleteEvent(id) {
-        if (!confirm("Delete this event?")) return;
-        try {
-            const res = await fetch(`${API}/events/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${authToken}` }
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                alert(data.detail || "Failed to delete event");
-                return;
-            }
-            loadEvents();
-        } catch (err) {
-            alert("Network error: " + err);
-        }
-    }
-
-    async function adminEditEvent(ev) {
-        const newName = prompt("New name:", ev.name);
-        if (newName === null) return;
-        const newDesc = prompt("New description:", ev.description || "");
-        if (newDesc === null) return;
-        const newLoc = prompt("New location:", ev.location || "");
-        if (newLoc === null) return;
-
-        try {
-            const res = await fetch(`${API}/events/${ev.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${authToken}`
-                },
-                body: JSON.stringify({
-                    name: newName,
-                    description: newDesc,
-                    location: newLoc,
-                    date: ev.date  // keep same date
-                })
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                alert(data.detail || "Failed to update event");
-                return;
-            }
-            loadEvents();
-        } catch (err) {
-            alert("Network error: " + err);
-        }
-    }
-
-    // -------- INITIALIZE --------
-    (async function init() {
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-
-        if (storedToken && storedUser) {
-            authToken = storedToken;
-            currentUser = JSON.parse(storedUser);
-            afterLogin();
-        } else {
-            showLogin();
-        }
-    })();
+})();
 </script>
 
 </body>

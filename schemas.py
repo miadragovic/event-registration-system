@@ -41,6 +41,7 @@ class EventBase(BaseModel):
     description: Optional[str] = None
     date: Optional[datetime] = None
     location: Optional[str] = None
+    max_capacity: Optional[int] = None
 
 
 class EventCreate(EventBase):

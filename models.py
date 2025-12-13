@@ -24,7 +24,10 @@ class Event(Base):
     description = Column(String(1000))
     date = Column(DateTime, nullable=False)
     location = Column(String(255), nullable=False)
+    max_capacity = Column(Integer, nullable=True)    
+    current_count = Column(Integer, default=0)         
     created_at = Column(DateTime, default=datetime.utcnow)
+
 
 
 class Registration(Base):
