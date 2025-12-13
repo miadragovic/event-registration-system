@@ -1,50 +1,74 @@
-# Event Registration API
+# FastAPI Backend – Azure Deployment
 
-A FastAPI backend for managing event registrations, built for our DevOps project.
+This project is a backend web application built with **FastAPI** and served using **Uvicorn**.  
+The application is deployed on **Azure App Service (Linux)** and connected to **GitHub** for continuous deployment.  
+It can also be run locally for development and testing purposes.
 
-## Features
-
-- User registration and authentication
-- Event creation and management
-- Automated tests
-- Deployed using CI/CD pipeline to Azure
 
 ## Tech Stack
 
 - Python 3.12
 - FastAPI
-- SQLAlchemy
-- Azure App Service
-- GitHub Actions (for CI/CD)
+- Uvicorn
+- Azure App Service (Linux)
+- Git & GitHub
 
-## Getting Started
+---
 
-1. Clone the repo:
+**Clone the repo**:
     ```
     git clone https://github.com/your-team/event-registration-api.git
     cd event-registration-api
     ```
-2. Install dependencies:
+
+**Create a virtual environment:** 
+    ```
+    python -m venv venv
+    source venv/bin/activate   # macOS / Linux
+    venv\Scripts\Activate      # Windows
+    ```
+
+
+**Install dependencies** 
     ```
     pip install -r requirements.txt
     ```
-3. Run tests:
+
+**Run pytest**
     ```
     pytest
+    
+    ```        
+        
+
+
+**Run the appliation:**
     ```
-4. Start the app:
+    uvicorn app.main:app --reload
     ```
-    uvicorn main:app --reload
-    ```
+**application available at:**
+http://127.0.0.1:8000
 
-## Deployment
+**Admin login credentials:**
+Local (Running on your machine)
 
-- Automated deployment to Azure via GitHub Actions.
+Email: admin@gmail.com
 
----
+Password: 12345
 
-*More documentation and instructions will be added soon.*
+Cloud (Azure Deployment)
 
+Email: fairouz3@gmail.com
 
-#  the latest trigger CI/CD workflow - testing azure deployment
+Password: 12345
+
+Note: These credentials are for development/testing purposes only.
+In a production environment, credentials should be stored securely using environment variables or Azure Key Vault.
+
+**Azure deployment details**
+The application is deployed on Azure App Service (Linux).
+
+Deployment is connected directly to GitHub.
+
+On each push to the connected branch, Azure pulls the latest code and redeploys the application.
 
